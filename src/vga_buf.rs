@@ -2,6 +2,7 @@ use core::fmt;
 use lazy_static::lazy_static;
 use spin::Mutex;
 use x86_64::instructions::interrupts::without_interrupts;
+use x86_64::instructions::port::Port;
 
 #[macro_export]
 macro_rules! print {
@@ -70,6 +71,7 @@ impl Screen {
         }
         self.col = 0;
         self.line = 0;
+        self.change_caret_pos();
     }
 
     pub fn print(&mut self, s: &str) {
@@ -93,6 +95,15 @@ impl Screen {
                 }
             }
         }
+        self.change_caret_pos();
+    }
+
+    pub fn remove(&mut self) {
+        if self.col > 0 {
+            self.col -= 1;
+            self.remove_char(self.line * BUF_WIDTH + self.col);
+        }
+        self.change_caret_pos();
     }
 
     fn scroll_up(&mut self) {
@@ -116,12 +127,28 @@ impl Screen {
         self.buffer[offset as usize * 2 + 1] = char.color_byte;
     }
 
+    fn remove_char(&mut self, offset: u32) {
+        self.write_char(offset, AsciiChar { char_byte: b' ' as u8, color_byte: self.color })
+    }
+
     fn read_char(&self, offset: u32) -> AsciiChar {
         unsafe {
             return AsciiChar {
                 char_byte: self.buffer[offset as usize * 2],
                 color_byte: self.buffer[offset as usize * 2 + 1],
             };
+        }
+    }
+
+    fn change_caret_pos(&self) {
+        let mut cmd_port = Port::new(0x3D4);
+        let mut data_port = Port::new(0x3D5);
+        unsafe {
+            let mut pos: u16 = (self.line * BUF_WIDTH + self.col) as u16;
+            cmd_port.write(14 as u16);
+            data_port.write((pos >> 8) & 0x00FF);
+            cmd_port.write(15 as u16);
+            data_port.write(pos & 0x00FF);
         }
     }
 }

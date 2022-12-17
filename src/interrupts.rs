@@ -53,11 +53,11 @@ pub fn init() {
 }
 
 pub fn set_keyboard_interrupt_handler(handler: fn(DecodedKey)) {
-    CUSTOM_HANDLERS.lock().keyboard_interrupt_handler  = handler;
+    CUSTOM_HANDLERS.lock().keyboard_interrupt_handler = handler;
 }
 
 pub fn set_timer_interrupt_handler(handler: fn()) {
-    CUSTOM_HANDLERS.lock().timer_interrupt_handler  = handler;
+    CUSTOM_HANDLERS.lock().timer_interrupt_handler = handler;
 }
 
 struct CustomHandlers {
