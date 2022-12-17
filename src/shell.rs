@@ -1,7 +1,6 @@
-use core::ptr::null_mut;
 use crate::{print, println};
 use crate::vga_buf::SCREEN;
-use crate::file_system::{FileSystem, MAX_MESSAGE_SIZE, LINE_END, NAME_SIZE, str_name_to_arr, compare_text_arrs};
+use crate::file_system::{FileSystem, LINE_END, NAME_SIZE, str_name_to_arr, compare_text_arrs};
 use pc_keyboard::DecodedKey;
 use lazy_static::lazy_static;
 
@@ -10,15 +9,14 @@ pub const MAX_BUF_SIZE : usize = 76;
 
 lazy_static! {
     static ref SH: spin::Mutex<Shell> = spin::Mutex::new({
-        let mut sh = Shell::new();
-        sh
+        Shell::new()
     });
 }
 
 pub fn handle_keyboard_interrupt(key: DecodedKey) {
     match key {
         DecodedKey::Unicode(c) => SH.lock().on_key_pressed(c as u8),
-        DecodedKey::RawKey(rk) => {}
+        DecodedKey::RawKey(_) => {}
     }
 }
 
@@ -43,7 +41,7 @@ impl Shell {
         match key {
             b'\n' => {
                 let mut sys = FileSystem::new(self.file_system_arr);
-                let (text_left, text_left_count, text_right, text_right_count) = split_text(self.buf, self.buf_len);
+                let (text_left, _text_left_count, text_right, _text_right_count) = split_text(self.buf, self.buf_len);
 
                 if compare_text_arrs(text_left, str_name_to_arr("clear")) {
                     SCREEN.lock().clear();
@@ -60,13 +58,13 @@ impl Shell {
                 self.file_system_arr = sys.get_arr();
             }
             8u8 =>{
-                if (self.buf_len > 0) {
+                if self.buf_len > 0 {
                     SCREEN.lock().remove();
                     self.buf_len -= 1;
                 }
             }
             _ => {
-                if (self.buf_len != MAX_BUF_SIZE) {
+                if self.buf_len != MAX_BUF_SIZE {
                     self.buf[self.buf_len] = key;
                     self.buf_len += 1;
                     print!("{}", key as char);

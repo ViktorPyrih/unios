@@ -1,10 +1,9 @@
 use crate::shell::{MAX_ARRAY_SIZE};
-use crate::{print, println};
+use crate::{print};
 
 const MAX_DIRS : usize = 20;
 const MAX_CHILDREN : usize = 10;
 pub const NAME_SIZE : usize = 16;
-pub const MAX_MESSAGE_SIZE : usize = 256;
 pub const LINE_END : u8 = '^' as u8;
 
 pub struct FileSystem {
@@ -35,7 +34,7 @@ impl FileSystem {
     }
 
     pub fn new_empty() -> FileSystem {
-        let mut directories = [Directory::new_root(); MAX_DIRS];
+        let directories = [Directory::new_root(); MAX_DIRS];
 
         FileSystem {
             dirs_count: 1,
@@ -62,7 +61,7 @@ impl FileSystem {
             } else {
                 self.cmd_change_dir(text_right);
             }
-        } else if (compare_text_arrs(text_left, str_name_to_arr("rm")) || compare_text_arrs(text_left, str_name_to_arr("del"))) {
+        } else if compare_text_arrs(text_left, str_name_to_arr("rm")) || compare_text_arrs(text_left, str_name_to_arr("del")) {
             self.cmd_remove_dir(text_right);
         } else if compare_text_arrs(text_left, str_name_to_arr("tree")) {
             self.cmd_get_dir_tree();
@@ -137,7 +136,7 @@ impl FileSystem {
             return;
         }
 
-        let (name_found_result, dir_with_same_name_index) = self.find_child_by_name(name);
+        let (name_found_result, _dir_with_same_name_index) = self.find_child_by_name(name);
         if name_found_result {
             print!("[Failed] Directory with the same name already exists\n");
             return;
@@ -145,11 +144,11 @@ impl FileSystem {
 
         let curr_dir_index = self.find_dir_index(self.curr_dir);
         let curr_dir = self.dirs[curr_dir_index];
-        if (curr_dir.child_count == MAX_CHILDREN) {
+        if curr_dir.child_count == MAX_CHILDREN {
             print!("[Failed] Cannot create more than {} entries in the directory\n", MAX_CHILDREN);
             return;
         }
-        if (self.dirs_count == MAX_DIRS) {
+        if self.dirs_count == MAX_DIRS {
             print!("[Failed] Cannot create more than {} directories\n", MAX_DIRS);
             return;
         }
@@ -164,12 +163,12 @@ impl FileSystem {
     }
 
     fn cmd_curr_dir(&mut self) {
-        let mut curr_dir = self.dirs[self.find_dir_index(self.curr_dir)];
+        let curr_dir = self.dirs[self.find_dir_index(self.curr_dir)];
         self.read_dirs_back_recursively(curr_dir);
     }
 
     fn cmd_get_dir_tree(&mut self) {
-        let mut curr_dir = self.dirs[self.find_dir_index(self.curr_dir)];
+        let curr_dir = self.dirs[self.find_dir_index(self.curr_dir)];
         print_name(curr_dir.name, true, true);
         self.read_dirs_front_recursively(curr_dir, 1);
     }
@@ -178,11 +177,11 @@ impl FileSystem {
 
         for i in 0..parent_dir.child_count {
             let dir_index = self.find_dir_index(parent_dir.child_indexes[i]);
-            let mut child = self.dirs[dir_index];
+            let child = self.dirs[dir_index];
 
-            for i in 0..nesting {
+            for _i in 0..nesting {
                 let backspaces_count = 4;
-                for j in 0..backspaces_count {
+                for _j in 0..backspaces_count {
                     print!(" ");
                 }
             }
@@ -194,13 +193,13 @@ impl FileSystem {
     fn read_dirs_back_recursively(&mut self, child: Directory) -> usize {
         let parent = self.get_parent(child);
         let mut nesting : usize = 0;
-        if (parent.index != child.index) {
+        if parent.index != child.index {
             nesting = self.read_dirs_back_recursively(parent);
         }
 
-        for i in 0..nesting {
+        for _i in 0..nesting {
             let backspaces_count = 4;
-            for j in 0..backspaces_count {
+            for _j in 0..backspaces_count {
                 print!(" ");
             }
         }
@@ -223,11 +222,11 @@ impl FileSystem {
 
     fn find_child_by_name(&mut self, name: [u8; NAME_SIZE]) -> (bool, usize) {
 
-        let mut curr_dir = self.dirs[self.find_dir_index(self.curr_dir)];
+        let curr_dir = self.dirs[self.find_dir_index(self.curr_dir)];
         for i in 0..curr_dir.child_count {
             let index = curr_dir.child_indexes[i];
             let dir_index = self.find_dir_index(index);
-            let mut child = self.dirs[dir_index];
+            let child = self.dirs[dir_index];
 
             if compare_text_arrs(child.name, name) {
                 return (true, index);
@@ -241,7 +240,7 @@ impl FileSystem {
         let mut dir = self.dirs[self.find_dir_index(dir_index)];
 
         for i in (0..dir.child_count).rev() {
-            let mut child = self.dirs[self.find_dir_index(dir.child_indexes[i])];
+            let child = self.dirs[self.find_dir_index(dir.child_indexes[i])];
             self.cascade_dir_delete(child.index);
         }
 
@@ -301,7 +300,6 @@ impl Directory {
 }
 
 fn serialize(file_system : FileSystem) -> [u8; MAX_ARRAY_SIZE] {
-    let arr_len : usize = (1 + (3 + NAME_SIZE + MAX_CHILDREN) * file_system.dirs_count) as usize;
     let mut array : [u8; MAX_ARRAY_SIZE] = [0; MAX_ARRAY_SIZE];
 
     array[0] = file_system.dirs_count as u8;
@@ -335,7 +333,6 @@ fn deserialize(array: [u8; MAX_ARRAY_SIZE]) -> FileSystem {
     let dirs_count = array[0] as usize;
     let curr_dir = array[1] as usize;
     let last_index = array[2] as usize;
-    let arr_len : usize = (3 + (3 + NAME_SIZE + MAX_CHILDREN) * dirs_count) as usize;
     let mut dirs = [Directory::new_root(); MAX_DIRS];
 
     let mut arr_index = 3;
@@ -427,18 +424,4 @@ fn print_name(name: [u8; NAME_SIZE], add_backslash: bool, add_new_line: bool) {
     if add_new_line {
         print!("\n");
     }
-}
-
-fn str_text_to_arr(text: &str) -> [u8; MAX_MESSAGE_SIZE] {
-    let mut array : [u8; MAX_MESSAGE_SIZE] = [0; MAX_MESSAGE_SIZE];
-
-    let mut index : usize = 0;
-    for (i, byte) in text.bytes().enumerate() {
-        array[i] = byte;
-        index += 1;
-    }
-    if index < MAX_MESSAGE_SIZE {
-        array[index] = LINE_END;
-    }
-    return array;
 }

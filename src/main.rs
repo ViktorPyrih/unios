@@ -2,11 +2,8 @@
 #![no_main] // disable all Rust-level entry points
 #![feature(abi_x86_interrupt)]
 
-use core::fmt::Write;
 use core::panic::PanicInfo;
-use core::ptr::write;
 use pc_keyboard::DecodedKey;
-use crate::vga_buf::SCREEN;
 
 mod vga_buf;
 mod interrupts;

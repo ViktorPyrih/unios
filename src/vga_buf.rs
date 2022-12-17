@@ -132,19 +132,17 @@ impl Screen {
     }
 
     fn read_char(&self, offset: u32) -> AsciiChar {
-        unsafe {
-            return AsciiChar {
-                char_byte: self.buffer[offset as usize * 2],
-                color_byte: self.buffer[offset as usize * 2 + 1],
-            };
-        }
+        return AsciiChar {
+            char_byte: self.buffer[offset as usize * 2],
+            color_byte: self.buffer[offset as usize * 2 + 1],
+        };
     }
 
     fn change_caret_pos(&self) {
         let mut cmd_port = Port::new(0x3D4);
         let mut data_port = Port::new(0x3D5);
         unsafe {
-            let mut pos: u16 = (self.line * BUF_WIDTH + self.col) as u16;
+            let pos: u16 = (self.line * BUF_WIDTH + self.col) as u16;
             cmd_port.write(14 as u16);
             data_port.write((pos >> 8) & 0x00FF);
             cmd_port.write(15 as u16);

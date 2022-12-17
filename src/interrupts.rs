@@ -33,9 +33,9 @@ lazy_static! {
 lazy_static! {
     static ref CUSTOM_HANDLERS: Mutex<CustomHandlers> = Mutex::new(
         {
-            let mut ch = CustomHandlers{
+            let ch = CustomHandlers{
                 timer_interrupt_handler: || {},
-                keyboard_interrupt_handler: |dk| {}
+                keyboard_interrupt_handler: |_| {}
             };
             ch
         }
