@@ -1,6 +1,4 @@
-use crate::vga_buffer::{AsciiChar, Screen};
-use core::fmt::Write;
-use core::ptr::write;
+use crate::vga_buffer::{Screen};
 
 const MAP: [&str; 25] = [
     "                                                                                ",
@@ -106,5 +104,5 @@ fn get_neighbours_count(gen: &[[u8; 80]; 25], i: &usize, j: &usize) -> i32 {
 }
 
 fn wait() {
-    for i in 0..100000 {}
+    for _ in 0..100000 {}
 }

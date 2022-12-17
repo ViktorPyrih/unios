@@ -4,9 +4,7 @@
 mod vga_buffer;
 mod game_of_life;
 
-use core::fmt::Write;
 use core::panic::PanicInfo;
-use core::ptr::write;
 use crate::game_of_life::game_of_life;
 use crate::vga_buffer::{Alignment, Color, Screen};
 

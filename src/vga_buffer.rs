@@ -132,8 +132,7 @@ impl Screen {
         self.char_offset = match &self.align {
             Alignment::Left => 0,
             Alignment::Right => WIDTH - 1,
-            Alignment::Center => WIDTH / 2,
-            _ => 0
+            Alignment::Center => WIDTH / 2
         };
         self.symbols_count = 0;
     }
