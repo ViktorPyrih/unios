@@ -57,7 +57,7 @@ impl Shell {
                 self.buf_len = 0;
                 self.file_system_arr = sys.get_arr();
             }
-            8u8 =>{
+            8u8 => {
                 if self.buf_len > 0 {
                     SCREEN.lock().remove();
                     self.buf_len -= 1;
